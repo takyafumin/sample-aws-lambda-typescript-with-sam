@@ -1,0 +1,24 @@
+# node_modulesディレクトリは除外
+node_modules/
+
+# コンパイル後のJavaScriptファイルは除外
+dist/
+
+# ログファイル
+*.log
+
+# SAMが生成するアーティファクトやビルドファイル
+.aws-sam/
+
+# TypeScript一時ファイル
+*.tsbuildinfo
+
+# 環境変数ファイル (必要に応じて)
+.env
+
+# macOS、Windows、Linuxのシステムファイル
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
