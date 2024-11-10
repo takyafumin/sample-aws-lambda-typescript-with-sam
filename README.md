@@ -6,42 +6,44 @@ LambdaをTypescriptで実装してSAMでデプロイする
 
 - aws cli
 - aws sam cli
-- node(20.x)
+- node(20.x), npm
 
 ## 使い方
+
+### プロジェクトのセットアップ
 
 リポジトリをクローンしてプロジェクトをセットアップします。
 
 ```bash
 git clone https://github.com/takyafumin/sample-aws-lambda-typescript-with-sam
 cd sample-aws-lambda-typescript-with-sam
-
-# npm モジュールのインストール
-npm install
+./run.sh init
 ```
 
-ソースコードを build します。
+### ビルドとデプロイ
+
+ビルドを行います。
+
 ```bash
-npm run build
+./run.sh lambda:build
 ```
 
-sam を利用してデプロイします。
+デプロイします。
 
 ```bash
-sam build
-sam deploy
+./run.sh lambda:deploy
 ```
 
 ## 作成される AWS リソース
 
 このプロジェクトでは以下の AWS リソースが作成されます。
 
-|            リソース            |                                                                                         説明                                                                                          |
-| ------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **AWS CloudFormationスタック** | SAM CLIは `template.yaml` をもとにCloudFormationスタックを作成し、Lambda関数やIAMロールなどのリソースを一元管理します。スタック名は `sam deploy` 実行時に指定したものが適用されます。 |
-| **AWS Lambda**                 | TypeScriptで実装されたメインのLambda関数。リクエストを処理し、ビジネスロジックを実行します。                                                                                          |
-| **IAMロール**                  | Lambdaが他のAWSリソースにアクセスするための権限を管理します。                                                                                                                         |
-| **S3バケット** (SAM管理用)     | `aws-sam-cli-managed-default`スタックによって作成され、デプロイ時のアーティファクトが一時的に保存されます。                                                                           |
+|            リソース            |                                                          説明                                                           |
+| ------------------------------ | ----------------------------------------------------------------------------------------------------------------------- |
+| **AWS CloudFormationスタック** | SAM CLIは `template.yaml` をもとにCloudFormationスタックを作成し、Lambda関数やIAMロールなどのリソースを一元管理します。 |
+| **AWS Lambda**                 | TypeScriptで実装されたメインのLambda関数。リクエストを処理し、ビジネスロジックを実行します。                            |
+| **IAMロール**                  | Lambdaが他のAWSリソースにアクセスするための権限を管理します。                                                           |
+| **S3バケット** (SAM管理用)     | `aws-sam-cli-managed-default`スタックによって作成され、デプロイ時のアーティファクトが一時的に保存されます。             |
 
 
 ## AWS リソースの削除方法
@@ -49,20 +51,27 @@ sam deploy
 作成された AWS リソースは、CloudFormation スタックとして削除できます。
 
 ```bash
-aws cloudformation delete-stack --stack-name lambda-typescript-with-sam
+# CloudFormation スタック名を確認する
+./run.sh cfn:list
+
+# CloudFormation スタック名を指定して削除する
+./run.sh cfn:del <stack-name>
 ```
 
 SAM 管理用のスタックが不要であれば同様の手順で削除できます。
 
 ```bash
-# S3 バケットに保存されたアーティファクトを削除する
-# S3 バケット名は `sam deploy` 実行時に表示されるものを指定してください
-aws s3 rm s3://aws-sam-cli-managed-default-samclisourcebucket-ycumlmrluwjh --recursive
-aws s3api delete-bucket --bucket aws-sam-cli-managed-default-samclisourcebucket-ycumlmrluwjh
+# SAM 管理用の S3 バケット名を確認する
+./run.sh s3:list
 
+# SAM 管理用の S3 バケット名を指定して削除する
+./run.sh s3:del <bucket-name>
 
-# SAM 管理用のスタックを削除する
-aws cloudformation delete-stack --stack-name aws-sam-cli-managed-default
+# SAM 管理用の スタック名を確認する
+./run.sh cfn:list
+
+# SAM 管理用の スタック名を指定して削除する
+./run.sh cfn:del <stack-name>
 ```
 
 ## TIPS
@@ -79,9 +88,3 @@ aws cloudformation delete-stack --stack-name aws-sam-cli-managed-default
 - tsconfig.jsonを設定し、TypeScriptをJavaScriptにトランスパイルする準備をします。
 - Lambda関数 (src/handler.ts) を作成し、template.yaml でLambdaリソースを定義します。
 - sam build と sam deploy --guided でビルドとデプロイを行います。
-
-### CloudFormation スタックの確認方法
-
-```bash
-aws cloudformation list-stacks | jq -r '.StackSummaries[] | select( .StackStatus != "DELETE_COMPLETE" ) | .StackName'
-```
